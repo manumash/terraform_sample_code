@@ -1,27 +1,27 @@
-variable "awsprops" {
+variable "awsdeploy" {
     type = "map"
     default = {
     region = "us-east-1"
-    vpc = "vpc-5234832d"
-    ami = "ami-0c1bea58988a989155"
+    vpc = "vpc-093898004b20a7b84"
+    ami = "ami-0022f774911c1d690"
     itype = "t2.micro"
     subnet = "subnet-81896c8e"
     publicip = true
     keyname = "myseckey"
-    secgroupname = "IAC-Sec-Group"
+    secgroupname = "deploy-Sec-Group"
   }
 }
 
 provider "aws" {
-  region = lookup(var.awsprops, "region")
+  region = lookup(var.awsdeploy, "region")
 }
 
-resource "aws_security_group" "project-iac-sg" {
-  name = lookup(var.awsprops, "secgroupname")
-  description = lookup(var.awsprops, "secgroupname")
-  vpc_id = lookup(var.awsprops, "vpc")
+resource "aws_security_group" "deployment_server" {
+  name = lookup(var.awsdeploy, "secgroupname")
+  description = lookup(var.awsdeploy, "secgroupname")
+  vpc_id = lookup(var.awsdeploy, "vpc")
 
-  // To Allow SSH Transport
+  // SSH Transport
   ingress {
     from_port = 22
     protocol = "tcp"
@@ -29,7 +29,7 @@ resource "aws_security_group" "project-iac-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  // To Allow Port 80 Transport
+  // Allow Port 80 Transport
   ingress {
     from_port = 80
     protocol = ""
@@ -51,15 +51,15 @@ resource "aws_security_group" "project-iac-sg" {
 
 
 resource "aws_instance" "project-iac" {
-  ami = lookup(var.awsprops, "ami")
-  instance_type = lookup(var.awsprops, "itype")
-  subnet_id = lookup(var.awsprops, "subnet") #FFXsubnet2
-  associate_public_ip_address = lookup(var.awsprops, "publicip")
-  key_name = lookup(var.awsprops, "keyname")
+  ami = lookup(var.awsdeploy, "ami")
+  instance_type = lookup(var.awsdeploy, "itype")
+  subnet_id = lookup(var.awsdeploy, "subnet") #FFXsubnet2
+  associate_public_ip_address = lookup(var.awsdeploy, "publicip")
+  key_name = lookup(var.awsdeploy, "keyname")
 
 
   vpc_security_group_ids = [
-    aws_security_group.project-iac-sg.id
+    aws_security_group.deployment-iac-sg.id
   ]
   root_block_device {
     delete_on_termination = true
@@ -69,12 +69,12 @@ resource "aws_instance" "project-iac" {
   }
   tags = {
     Name ="SERVER01"
-    Environment = "DEV"
+    Environment = "Test"
     OS = "UBUNTU"
     Managed = "IAC"
   }
 
-  depends_on = [ aws_security_group.project-iac-sg ]
+  depends_on = [ aws_security_group.deployment-iac-sg ]
 }
 
 
